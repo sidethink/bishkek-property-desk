@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Карта шоурумов</title>
+    <link rel="stylesheet" href="./vendor/leaflet/leaflet.css" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="rail" aria-label="Навигация">
+        <div class="rail__brand">BD</div>
+        <button class="rail__item rail__item--active" title="Карта" data-rail-action="Карта уже открыта">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l-6 3V6l6-3 6 3 6-3v15l-6 3-6-3z"/><path d="M9 3v15M15 6v15"/></svg>
+        </button>
+        <button class="rail__item" title="Сравнения" data-rail-action="Сравнения доступны в шоуруме объекта">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7h13M17 4l3 3-3 3M17 17H4M7 14l-3 3 3 3"/></svg>
+        </button>
+        <button class="rail__item" title="Инсайты" data-rail-action="Инсайты появятся после подключения реальных данных">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V5M4 19h17"/><path d="M8 16l3-5 4 3 4-8"/></svg>
+        </button>
+      </aside>
+
+      <section class="sidebar" aria-label="Фильтры и объекты">
+        <header class="sidebar__header">
+          <p class="sidebar__label">Bishkek Property Desk</p>
+          <h1>Витрина объектов</h1>
+          <p class="sidebar__intro">Кураторская карта сделок, объявлений и шоурумов для аргументации цены.</p>
+        </header>
+
+        <div class="market-overview">
+          <div>
+            <strong id="avgPriceMetric">$0/м²</strong>
+            <span>средний ориентир</span>
+          </div>
+          <div>
+            <strong id="tourMetric">0</strong>
+            <span>с видео/туром</span>
+          </div>
+        </div>
+
+        <div class="mode-switch" role="tablist" aria-label="Режим">
+          <button class="mode-switch__button mode-switch__button--active" type="button" data-mode="all" role="tab" aria-selected="true">
+            Все
+          </button>
+          <button class="mode-switch__button" type="button" data-mode="deal" role="tab" aria-selected="false">Сделки</button>
+          <button class="mode-switch__button" type="button" data-mode="listing" role="tab" aria-selected="false">Объявления</button>
+        </div>
+
+        <form class="filters" id="filters">
+          <label>
+            Район
+            <select id="districtFilter">
+              <option value="all">Все районы</option>
+            </select>
+          </label>
+
+          <label>
+            Тип медиа
+            <select id="mediaFilter">
+              <option value="all">Все медиа</option>
+              <option value="video">С видео</option>
+              <option value="tour">С 360/3D туром</option>
+            </select>
+          </label>
+
+          <div class="filter-grid">
+            <label>
+              Комнат
+              <select id="roomsFilter">
+                <option value="all">Любое</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4+</option>
+              </select>
+            </label>
+
+            <label>
+              Цена до
+              <select id="priceFilter">
+                <option value="all">Любая</option>
+                <option value="80000">$80k</option>
+                <option value="110000">$110k</option>
+                <option value="150000">$150k</option>
+              </select>
+            </label>
+          </div>
+        </form>
+
+        <div class="sidebar__summary">
+          <span id="resultCount">0 объектов</span>
+          <button id="resetFilters" type="button">Очистить</button>
+        </div>
+
+        <div class="property-list" id="propertyList" aria-label="Список объектов"></div>
+      </section>
+
+      <main class="map-stage">
+        <div class="map-toolbar">
+          <div class="map-actions">
+            <button id="toggleSidebar" type="button" aria-pressed="false">Скрыть витрину</button>
+            <button id="cleanMapToggle" type="button">Чистая карта</button>
+          </div>
+          <label class="search-box">
+            <span>Поиск</span>
+            <input id="searchInput" type="search" placeholder="Район, улица или объект" />
+          </label>
+        </div>
+        <div id="map"></div>
+      </main>
+
+      <aside class="showroom" id="showroom" aria-live="polite"></aside>
+    </div>
+
+    <div class="app-toast" id="appToast" role="status" aria-live="polite"></div>
+
+    <script src="./vendor/leaflet/leaflet.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>
