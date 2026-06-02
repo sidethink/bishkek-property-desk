@@ -394,6 +394,7 @@ select {
 
 .map-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   pointer-events: auto;
 }
@@ -1165,7 +1166,7 @@ select {
     display: inline;
   }
 
-  .showroom__top span {
+  .showroom__top > span:not(.object-status) {
     width: 100%;
     margin-left: 0;
   }
@@ -1180,6 +1181,7 @@ select {
 
   .factor-grid,
   .comparables,
+  .comparables-list,
   .price-band,
   .stats,
   .detail-grid {
@@ -1218,8 +1220,558 @@ select {
   .showroom-fullscreen .estimate-card,
   .showroom-fullscreen .client-summary,
   .showroom-fullscreen .comparables,
+  .showroom-fullscreen .comparables-list,
   .showroom-fullscreen .data-status,
   .showroom-fullscreen .internal-only {
     grid-column: 2;
+  }
+}
+
+/* ============================================================
+   NEW COMPONENTS — added June 2026
+   ============================================================ */
+
+/* ----------------------------------------------------------
+   1. Object status badge
+   ---------------------------------------------------------- */
+.object-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.status--deal {
+  background: #076c46;
+  color: #fff;
+}
+
+.status--listing {
+  background: var(--amber-soft);
+  color: var(--amber);
+  border: 1px solid #f5d99a;
+}
+
+.status--demo {
+  background: #eef1f0;
+  color: var(--muted);
+}
+
+/* ----------------------------------------------------------
+   2. Audience switch (Для риэлтора / Для клиента)
+   ---------------------------------------------------------- */
+.audience-switch {
+  display: flex;
+  gap: 0;
+  margin: 14px 0;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #f3f6f5;
+}
+
+.audience-switch__btn {
+  flex: 1;
+  height: 34px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  transition:
+    background 160ms ease,
+    color 160ms ease;
+}
+
+.audience-switch__btn--active {
+  background: #17201f;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(23, 32, 31, 0.18);
+}
+
+/* ----------------------------------------------------------
+   3. Main-reason block  (💡 Главная причина цены)
+   ---------------------------------------------------------- */
+.main-reason-block {
+  margin: 14px 0;
+  padding: 14px 16px;
+  border: 1px solid #c8e0db;
+  border-radius: var(--radius);
+  background: linear-gradient(135deg, var(--teal-soft), #f5faf9);
+  color: #1a3532;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.main-reason-block__label {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--teal);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ----------------------------------------------------------
+   4. Script blocks (seller / buyer)
+   ---------------------------------------------------------- */
+.script-blocks {
+  display: grid;
+  gap: 12px;
+  margin: 6px 0;
+}
+
+.script-block {
+  padding: 13px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #fff;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.script-block--seller {
+  border-left: 4px solid var(--green);
+}
+
+.script-block--buyer {
+  border-left: 4px solid var(--teal);
+}
+
+.script-block__label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.script-block--seller .script-block__label {
+  color: var(--green);
+}
+
+.script-block--buyer .script-block__label {
+  color: var(--teal);
+}
+
+/* ----------------------------------------------------------
+   5. Comparable cards (new design)
+   ---------------------------------------------------------- */
+.comparables-list {
+  display: grid;
+  gap: 16px;
+}
+
+.comparable-card {
+  border: 1px solid var(--line);
+  border-radius: calc(var(--radius) + 2px);
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(23, 32, 31, 0.06);
+  overflow: hidden;
+  transition:
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.comparable-card:hover {
+  box-shadow: 0 14px 36px rgba(0, 111, 107, 0.13);
+  transform: translateY(-2px);
+}
+
+.comparable-card__head {
+  display: flex;
+  gap: 0;
+  align-items: stretch;
+}
+
+.comparable-card__img {
+  flex-shrink: 0;
+  width: 90px;
+  height: 90px;
+  background-position: center;
+  background-size: cover;
+  background-color: var(--surface-strong);
+}
+
+.comparable-card__info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 10px 14px;
+  gap: 4px;
+}
+
+.comparable-score {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 2px;
+}
+
+.comparable-score__num {
+  font-size: 26px;
+  font-weight: 900;
+  line-height: 1;
+  color: var(--teal);
+}
+
+.comparable-score__denom {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.comp-reasons {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.comp-price {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-top: 1px solid var(--line);
+  background: var(--surface-strong);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.comp-diff {
+  font-size: 12px;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 999px;
+}
+
+.comp-diff--up {
+  background: #fde8e5;
+  color: var(--red);
+}
+
+.comp-diff--down {
+  background: #d8f3e8;
+  color: var(--green);
+}
+
+.compare-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 13px;
+}
+
+.compare-table th,
+.compare-table td {
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: middle;
+  overflow-wrap: anywhere;
+}
+
+.compare-table th {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: var(--surface-strong);
+}
+
+.compare-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.comp-row--match td {
+  background: #edfaf5;
+  color: var(--green);
+  font-weight: 700;
+}
+
+.comp-open-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: 10px 14px 12px;
+  padding: 0 14px;
+  height: 34px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #fff;
+  color: var(--teal);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 800;
+  transition:
+    background 140ms ease,
+    border-color 140ms ease;
+}
+
+.comp-open-btn:hover {
+  background: var(--teal-soft);
+  border-color: #a0cdc8;
+}
+
+/* ----------------------------------------------------------
+   6. Modal window
+   ---------------------------------------------------------- */
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms ease;
+}
+
+.modal--open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+}
+
+.modal__window {
+  position: relative;
+  z-index: 1;
+  width: min(680px, calc(100vw - 32px));
+  max-height: 90vh;
+  border-radius: calc(var(--radius) + 4px);
+  background: #fff;
+  box-shadow:
+    0 32px 80px rgba(20, 31, 29, 0.24),
+    0 0 0 1px rgba(255, 255, 255, 0.12) inset;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  animation: modal-in 200ms ease both;
+}
+
+@keyframes modal-in {
+  from {
+    transform: translateY(16px) scale(0.98);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+.modal__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 18px;
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(8px);
+  z-index: 2;
+}
+
+.modal__head h2 {
+  margin: 0;
+  font-size: 20px;
+  font-family: Georgia, "Times New Roman", serif;
+  letter-spacing: -0.015em;
+}
+
+.modal__close {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #fff;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  transition:
+    background 140ms ease,
+    color 140ms ease;
+}
+
+.modal__close:hover {
+  background: #f3f6f5;
+  color: var(--text);
+}
+
+.modal__form {
+  padding: 22px 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.form-full {
+  grid-column: 1 / -1;
+}
+
+.modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+  margin-top: 4px;
+}
+
+.btn-primary {
+  height: 42px;
+  padding: 0 24px;
+  border: 0;
+  border-radius: var(--radius);
+  background: #17201f;
+  color: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 800;
+  transition: background 140ms ease;
+}
+
+.btn-primary:hover {
+  background: var(--teal);
+}
+
+.btn-secondary {
+  height: 42px;
+  padding: 0 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #fff;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+  transition:
+    background 140ms ease,
+    border-color 140ms ease;
+}
+
+.btn-secondary:hover {
+  background: var(--surface-strong);
+  border-color: #c0d0ce;
+}
+
+/* ----------------------------------------------------------
+   7. List card status badges
+   ---------------------------------------------------------- */
+.badge--deal {
+  background: #d4f0e5 !important;
+  color: var(--green) !important;
+}
+
+.badge--listing {
+  background: var(--amber-soft) !important;
+  color: var(--amber) !important;
+}
+
+.badge--demo {
+  background: #eef1f0 !important;
+  color: var(--muted) !important;
+}
+
+/* ----------------------------------------------------------
+   8. Form textarea
+   ---------------------------------------------------------- */
+label textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 8px 10px;
+  resize: vertical;
+  font: inherit;
+  color: var(--text);
+  background: #fff;
+  transition: border-color 140ms ease;
+}
+
+label textarea:focus {
+  outline: none;
+  border-color: var(--teal);
+  box-shadow: 0 0 0 3px rgba(0, 111, 107, 0.1);
+}
+
+label input[type="text"],
+label input[type="number"],
+label input[type="url"],
+label input[type="email"] {
+  width: 100%;
+  height: 38px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #fff;
+  color: var(--text);
+  padding: 0 10px;
+  transition: border-color 140ms ease;
+}
+
+label input[type="text"]:focus,
+label input[type="number"]:focus,
+label input[type="url"]:focus,
+label input[type="email"]:focus {
+  outline: none;
+  border-color: var(--teal);
+  box-shadow: 0 0 0 3px rgba(0, 111, 107, 0.1);
+}
+
+/* ----------------------------------------------------------
+   9. Mobile adjustments for new components
+   ---------------------------------------------------------- */
+@media (max-width: 780px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .modal__window {
+    max-height: 96vh;
+    border-radius: var(--radius);
+  }
+
+  .map-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .map-actions button {
+    min-width: 0;
+    padding-inline: 10px;
+  }
+
+  .compare-table {
+    display: block;
+    overflow-x: auto;
+    table-layout: auto;
+    white-space: nowrap;
   }
 }
