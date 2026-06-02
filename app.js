@@ -408,14 +408,20 @@ let sidebarVisible = true;
 let cleanMapMode = false;
 let showroomFullscreen = false;
 let shareOnlyId = null;
+let invalidShareId = null;
 const markers = new Map();
 
 const initialParams = new URLSearchParams(window.location.search);
 const initialObjectId =
   initialParams.get("object") || initialParams.get("property") || initialParams.get("share");
-if (initialObjectId && getAllProperties().some((p) => p.id === initialObjectId)) {
-  selectedId = initialObjectId;
-  shareOnlyId = initialObjectId;
+const initialObject = getAllProperties().find((p) => p.id === initialObjectId);
+if (initialObjectId) {
+  if (initialObject) {
+    selectedId = initialObjectId;
+    shareOnlyId = initialObjectId;
+  } else {
+    invalidShareId = initialObjectId;
+  }
   audienceMode = "client";
   sidebarVisible = false;
   cleanMapMode = false;
@@ -455,6 +461,9 @@ function safeUrl(value, fallback = "") {
 }
 
 const getMainImage = (p) => safeUrl(p.photos?.[0], defaultImageUrl);
+const isDemoTourUrl = (value) => String(value ?? "").trim().startsWith("demo:");
+const hasVideo = (p) => Boolean(safeUrl(p.youtubeUrl));
+const hasTour = (p) => Boolean(safeUrl(p.virtualTourUrl) || isDemoTourUrl(p.virtualTourUrl));
 
 function getMediaType(p) {
   if (activeMedia !== "auto") return activeMedia;
@@ -470,6 +479,7 @@ function getFilteredProperties() {
   const search = document.querySelector("#searchInput").value.trim().toLowerCase();
 
   return all.filter((p) => {
+    if (invalidShareId) return false;
     if (shareOnlyId) return p.id === shareOnlyId;
     const searchable = [p.title, p.district, p.addressLabel, p.type, p.buildingType, p.renovation]
       .join(" ")
@@ -477,8 +487,8 @@ function getFilteredProperties() {
     if (search && !searchable.includes(search)) return false;
     if (caseMode !== "all" && p.caseType !== caseMode) return false;
     if (district !== "all" && p.district !== district) return false;
-    if (media === "video" && !safeUrl(p.youtubeUrl)) return false;
-    if (media === "tour" && !safeUrl(p.virtualTourUrl)) return false;
+    if (media === "video" && !hasVideo(p)) return false;
+    if (media === "tour" && !hasTour(p)) return false;
     if (rooms !== "all") {
       const roomNumber = Number(rooms);
       if (roomNumber === 4 && p.rooms < 4) return false;
@@ -750,6 +760,11 @@ function renderMarkers(filtered) {
 }
 
 function toggleAudienceMode(mode) {
+  if (shareOnlyId || invalidShareId) {
+    audienceMode = "client";
+    document.body.classList.add("client-mode");
+    return;
+  }
   audienceMode = mode;
   const isClient = mode === "client";
   document.body.classList.toggle("client-mode", isClient);
@@ -759,6 +774,7 @@ function toggleAudienceMode(mode) {
 }
 
 function toggleShowroomFullscreen() {
+  if (shareOnlyId || invalidShareId) return;
   showroomFullscreen = !showroomFullscreen;
   document.body.classList.toggle("showroom-fullscreen", showroomFullscreen);
   document.body.classList.remove("showroom-hidden", "clean-map");
@@ -822,11 +838,12 @@ function renderPropertyList(filtered) {
 
 function renderMedia(p) {
   const mediaType = getMediaType(p);
+  const rawTourUrl = String(p.virtualTourUrl ?? "").trim();
   const tourUrl = safeUrl(p.virtualTourUrl);
   const youtubeUrl = safeUrl(p.youtubeUrl);
   const title = escapeHtml(p.title);
-  if (mediaType === "tour" && tourUrl) {
-    if (!String(p.virtualTourUrl).trim().startsWith("http")) {
+  if (mediaType === "tour" && hasTour(p)) {
+    if (isDemoTourUrl(rawTourUrl)) {
       const label = p.virtualTourType === "matterport" ? "Matterport 3D showroom" : "360 virtual tour";
       const note = audienceMode === "client"
         ? "Панорамный тур подключается к объекту отдельной ссылкой."
@@ -843,6 +860,7 @@ function renderMedia(p) {
 
 function renderComparables(comparables, target) {
   if (!comparables.length) return "<p style='color:var(--muted);font-size:13px'>Нет похожих объектов</p>";
+  const lockToSharedObject = Boolean(shareOnlyId || invalidShareId);
 
   return comparables.map((item) => {
     const priceDiff = item.price - target.price;
@@ -884,12 +902,16 @@ function renderComparables(comparables, target) {
             }).join("")}
           </tbody>
         </table>
-        <button type="button" class="comp-open-btn" data-id="${escapeHtml(item.id)}">Открыть →</button>
+        ${lockToSharedObject ? "" : `<button type="button" class="comp-open-btn" data-id="${escapeHtml(item.id)}">Открыть →</button>`}
       </div>`;
   }).join("");
 }
 
 function renderShowroom() {
+  if (invalidShareId) {
+    renderInvalidShare();
+    return;
+  }
   const all = getAllProperties();
   const p = all.find((item) => item.id === selectedId) || all[0];
   const comparables = getComparables(p);
@@ -897,29 +919,30 @@ function renderShowroom() {
   const range = estimateRange(p, band);
   const showroom = document.querySelector("#showroom");
   const isClient = audienceMode === "client";
-  const hasVideo = Boolean(safeUrl(p.youtubeUrl));
-  const hasTour = Boolean(safeUrl(p.virtualTourUrl));
+  const isShare = Boolean(shareOnlyId);
+  const hasVideoMedia = hasVideo(p);
+  const hasTourMedia = hasTour(p);
 
   showroom.innerHTML = `
     <div class="showroom__top">
       <button type="button" id="focusMap">На карте</button>
-      <button type="button" id="showroomFullscreen">${showroomFullscreen ? "Свернуть" : "На весь экран"}</button>
-      <button type="button" id="copyClientLink">Ссылка</button>
-      <button type="button" id="closeShowroom" class="showroom__close">Закрыть</button>
+      ${isShare ? "" : `<button type="button" id="showroomFullscreen">${showroomFullscreen ? "Свернуть" : "На весь экран"}</button>`}
+      ${isShare ? "" : `<button type="button" id="copyClientLink">Ссылка</button>`}
+      ${isShare ? "" : `<button type="button" id="closeShowroom" class="showroom__close">Закрыть</button>`}
       ${getObjectStatusBadge(p.objectStatus)}
     </div>
 
-    <div class="audience-switch" role="tablist">
+    ${isShare ? "" : `<div class="audience-switch" role="tablist">
       <button class="audience-switch__btn ${!isClient ? "audience-switch__btn--active" : ""}" data-audience="realtor" role="tab">Для риэлтора</button>
       <button class="audience-switch__btn ${isClient ? "audience-switch__btn--active" : ""}" data-audience="client" role="tab">Для клиента</button>
-    </div>
+    </div>`}
 
     <div class="showroom__body">
       <div class="media-viewer">${renderMedia(p)}</div>
       <div class="media-tabs">
         <button class="${getMediaType(p) === "photo" ? "active" : ""}" data-media="photo">Фото</button>
-        <button class="${getMediaType(p) === "video" ? "active" : ""}" data-media="video" ${hasVideo ? "" : "disabled"}>Видео</button>
-        <button class="${getMediaType(p) === "tour" ? "active" : ""}" data-media="tour" ${hasTour ? "" : "disabled"}>360/3D</button>
+        <button class="${getMediaType(p) === "video" ? "active" : ""}" data-media="video" ${hasVideoMedia ? "" : "disabled"}>Видео</button>
+        <button class="${getMediaType(p) === "tour" ? "active" : ""}" data-media="tour" ${hasTourMedia ? "" : "disabled"}>360/3D</button>
       </div>
 
       <div class="showroom-hero">
@@ -1003,22 +1026,40 @@ function renderShowroom() {
   });
   document.querySelector("#focusMap").addEventListener("click", () => {
     if (map) map.setView([p.lat, p.lng], 14);
+    if (shareOnlyId) {
+      document.querySelector(".map-stage")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      syncLayoutControls();
+      return;
+    }
     document.body.classList.add("showroom-hidden");
     document.body.classList.remove("showroom-open", "showroom-fullscreen");
     showroomFullscreen = false;
     syncLayoutControls();
   });
-  document.querySelector("#closeShowroom").addEventListener("click", () => {
+  document.querySelector("#closeShowroom")?.addEventListener("click", () => {
     document.body.classList.add("showroom-hidden");
     document.body.classList.remove("showroom-open", "showroom-fullscreen");
     showroomFullscreen = false;
     syncLayoutControls();
   });
-  document.querySelector("#showroomFullscreen").addEventListener("click", toggleShowroomFullscreen);
-  document.querySelector("#copyClientLink").addEventListener("click", () => copyClientLink(p));
+  document.querySelector("#showroomFullscreen")?.addEventListener("click", toggleShowroomFullscreen);
+  document.querySelector("#copyClientLink")?.addEventListener("click", () => copyClientLink(p));
   document.querySelectorAll("[data-audience]").forEach((btn) => {
     btn.addEventListener("click", () => { toggleAudienceMode(btn.dataset.audience); renderShowroom(); });
   });
+}
+
+function renderInvalidShare() {
+  document.querySelector("#showroom").innerHTML = `
+    <div class="showroom__top">
+      <span class="object-status status--demo">Ссылка не найдена</span>
+    </div>
+    <div class="showroom__empty showroom__empty--invalid">
+      <div>
+        <strong>Объект не найден</strong>
+        <p>Ссылка устарела или объект был удален из витрины. Попросите риэлтора отправить новую ссылку.</p>
+      </div>
+    </div>`;
 }
 
 function renderEmptyShowroom() {
@@ -1032,6 +1073,8 @@ function renderEmptyShowroom() {
 }
 
 function selectProperty(id) {
+  if (shareOnlyId && id !== shareOnlyId) return;
+  if (invalidShareId) return;
   selectedId = id;
   activeMedia = "auto";
   const p = getAllProperties().find((item) => item.id === id);
@@ -1045,6 +1088,13 @@ function selectProperty(id) {
 
 function render() {
   const filtered = getFilteredProperties();
+  if (invalidShareId) {
+    renderMarkers(filtered);
+    renderPropertyList(filtered);
+    renderSidebarMetrics(filtered);
+    renderInvalidShare();
+    return;
+  }
   if (!filtered.some((p) => p.id === selectedId) && filtered[0]) {
     selectedId = filtered[0].id;
   }
@@ -1062,7 +1112,7 @@ function renderSidebarMetrics(filtered) {
   document.querySelector("#avgPriceMetric").textContent =
     filtered.length > 0 ? `${formatUsd(getAveragePricePerSqm(filtered))}/м²` : "$0/м²";
   document.querySelector("#tourMetric").textContent = filtered.filter(
-    (p) => p.youtubeUrl || p.virtualTourUrl
+    (p) => hasVideo(p) || hasTour(p)
   ).length;
 }
 
@@ -1324,3 +1374,9 @@ function importCSV(file) {
 initFilters();
 initMap();
 render();
+if (shareOnlyId) {
+  const sharedProperty = getAllProperties().find((p) => p.id === shareOnlyId);
+  if (sharedProperty && map) {
+    window.setTimeout(() => map.setView([sharedProperty.lat, sharedProperty.lng], 14), 260);
+  }
+}
